@@ -24,6 +24,9 @@ Channel
   .fromPath("${params.read_dir}*/*_U.fastq.gz")
   .set{readSE_ch}
 
+read_ch = readPE_ch.merge(readSE_ch)
+
+
 process index_ref {
 
   input:
@@ -42,65 +45,36 @@ process index_ref {
 
 // combine the ref and read channel to use the same reference for all reads
 // (This is basically the replacemnt for "each tuple", which nf doesn't allow)
-ref_and_reads = ref_mapPE_ch.combine(readPE_ch)
+ref_and_reads = ref_mapPE_ch.combine(read_ch)
 
-process map_PE {
+process mapping {
+
   input:
-  tuple file(ref), file('*'), val(sample_id), file(reads) from ref_and_reads
+  tuple file(ref), file('*'), val(sample_id), file(reads_PE), file(reads_SE) from ref_and_reads
 
   output:
-  file('*.sam') into mapped_PE
+  tuple val(sample_id), file('*_PE.sam'), file('*_SE.sam') into mapped_ch
   val(sample_id) into id_channel
 
   script:
   """
-    bwa-mem2 mem $ref $reads > ${sample_id}_PE.sam
+    bwa-mem2 mem $ref $reads_PE > ${sample_id}_PE.sam
+    bwa-mem2 mem $ref $reads_SE > ${reads_SE}_SE.sam
   """
 
 }
 
-process map_SE {
+process filtering {
   input:
-  tuple file(ref), file('*') from ref_mapSE_ch
-  each file(reads) from readSE_ch
+  tuple val(sample_id), file(samPE),file(samSE) from mapped_ch
 
   output:
-  file('*.sam') into mapped_SE
+  tuple val(sample_id), file('*_PE.bam'),file('*_SE.bam') into filtered_ch
 
   script:
   """
-    bwa-mem2 mem $ref $reads > ${reads}_SE.sam
-  """
-}
-
-process filter_PE {
-  input:
-  file(sam) from mapped_PE
-
-  output:
-  file('*.bam') into filtered_PE
-
-  script:
-  """
-    samtools view -q ${params.qual_fil} -Su $sam | samtools sort > ${sam.baseName}.bam
-
-  """
-  // samtool view command:
-  // -q mapping quality cut-off
-  // -S sam input file
-  // -u uncompressed bam output file
-}
-
-process filter_SE {
-  input:
-  file(sam) from mapped_SE
-
-  output:
-  file('*.bam') into filtered_SE
-
-  script:
-  """
-    samtools view -q ${params.qual_fil} -Su $sam | samtools sort > ${sam.baseName}.bam
+    samtools view -q ${params.qual_fil} -Su $samPE | samtools sort > ${samPE.baseName}.bam
+    samtools view -q ${params.qual_fil} -Su $samSE | samtools sort > ${samSE.baseName}.bam
 
   """
   // samtool view command:
@@ -113,9 +87,7 @@ process merge_bams {
   publishDir "$params.out_dir/$sample_id", mode: 'copy'
 
   input:
-  file(se) from filtered_SE
-  file(pe) from filtered_PE
-  val(sample_id) from id_channel
+  tuple val(sample_id), file(pe),file(se) from filtered_ch
 
   output:
   file('*.bam') into merged_bam
