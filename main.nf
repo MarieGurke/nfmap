@@ -49,6 +49,8 @@ ref_and_reads = ref_mapPE_ch.combine(read_ch)
 
 process mapping {
 
+  label 'RAM_high'
+
   input:
   tuple file(ref), file('*'), val(sample_id), file(reads_PE), file(reads_SE) from ref_and_reads
 
@@ -58,13 +60,16 @@ process mapping {
 
   script:
   """
-    bwa-mem2 mem $ref $reads_PE > ${sample_id}_PE.sam
-    bwa-mem2 mem $ref $reads_SE > ${reads_SE}_SE.sam
+    bwa-mem2 mem -t ${task.cpus} $ref $reads_PE > ${sample_id}_PE.sam
+    bwa-mem2 mem -t ${task.cpus} $ref $reads_SE > ${reads_SE}_SE.sam
   """
 
 }
 
 process filtering {
+
+  label 'RAM_high'
+
   input:
   tuple val(sample_id), file(samPE),file(samSE) from mapped_ch
 
@@ -73,8 +78,8 @@ process filtering {
 
   script:
   """
-    samtools view -q ${params.qual_fil} -Su $samPE | samtools sort > ${samPE.baseName}.bam
-    samtools view -q ${params.qual_fil} -Su $samSE | samtools sort > ${samSE.baseName}.bam
+    samtools view -@ ${task.cpus} -q ${params.qual_fil} -Su $samPE | samtools sort -@ ${task.cpus} > ${samPE.baseName}.bam
+    samtools view -@ ${task.cpus} -q ${params.qual_fil} -Su $samSE | samtools sort -@ ${task.cpus} > ${samSE.baseName}.bam
 
   """
   // samtool view command:
@@ -94,7 +99,7 @@ process merge_bams {
 
   script:
   """
-    samtools merge -@ 2 ${sample_id}.bam $se $pe
+    samtools merge -@ ${task.cpus} ${sample_id}.bam $se $pe
   """
   // -@ Number of threads
 }
@@ -127,7 +132,7 @@ process stats {
 
   script:
   """
-    samtools index $bam
+    samtools index -@ ${task.cpus} $bam
     samtools idxstats $bam > ${bam.baseName}_idxstats.txt
     samtools depth $bam > ${bam.baseName}_depth.txt
     re_map=\$(awk '{if(NR==1) print \$3}' ${bam.baseName}_idxstats.txt)
