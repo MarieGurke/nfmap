@@ -2,9 +2,10 @@
 log.info """\
          Fancy nextflow mapping script
          ===================================
-         read_dir        : ${params.read_dir}
-         ref_dir         : ${params.ref_dir}
-         out_dir         : ${params.out_dir}
+         Read directory          : ${params.read_dir}
+         Reference directory     : ${params.ref_dir}
+         Output directory        : ${params.out_dir}
+         Mapping quality cutoff  : ${params.qual_fil}
          """
          .stripIndent()
 
@@ -81,7 +82,7 @@ process filter_PE {
 
   script:
   """
-    samtools view -q 30 -Su $sam | samtools sort > ${sam.baseName}.bam
+    samtools view -q ${params.qual_fil} -Su $sam | samtools sort > ${sam.baseName}.bam
 
   """
   // samtool view command:
@@ -99,7 +100,7 @@ process filter_SE {
 
   script:
   """
-    samtools view -q 30 -Su $sam | samtools sort > ${sam.baseName}.bam
+    samtools view -q ${params.qual_fil} -Su $sam | samtools sort > ${sam.baseName}.bam
 
   """
   // samtool view command:
