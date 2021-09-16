@@ -29,6 +29,8 @@ read_ch = readPE_ch.merge(readSE_ch)
 
 process index_ref {
 
+  label 'RAM_high'
+
   input:
   file(ref) from ref_index_ch
 
