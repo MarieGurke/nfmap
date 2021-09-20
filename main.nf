@@ -114,14 +114,14 @@ process stats_file {
 
   script:
   """
-  echo \
+  echo -e \
    "Sample\tNumber of reads mapped\tTotal bp mapped\tAverage depth\tCoverage" \
    > Mapping_stats.tsv
   """
 }
 
 process stats {
-  publishDir "$params.out_dir/${bam.baseName}", pattern: '*.txt', mode: 'copy'
+  //publishDir "$params.out_dir/${bam.baseName}", pattern: '*.txt', mode: 'copy'
   publishDir "$params.out_dir", pattern: '*.tsv', mode: 'copy'
   input:
   file(stats_file) from stats_file_ch
@@ -142,6 +142,6 @@ process stats {
     depth=\$(awk '{sum+=\$3;cnt++}END{print sum/cnt}' ${bam.baseName}_depth.txt| sed 's/,/./')
     ref_len=\$(awk '{if(NR==1) print \$2}' ${bam.baseName}_idxstats.txt)
     cov=\$(echo "scale=2 ; \$tot_bp / \$ref_len" | bc)
-    echo "${bam.baseName}\t\$re_map\t\$tot_bp\t\$depth\t\$cov" >> $stats_file
+    echo -e "${bam.baseName}\t\$re_map\t\$tot_bp\t\$depth\t\$cov" >> $stats_file
   """
 }
