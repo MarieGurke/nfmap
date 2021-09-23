@@ -137,10 +137,10 @@ process stats {
     samtools index -@ ${task.cpus} $bam
     samtools idxstats $bam > ${bam.baseName}_idxstats.txt
     samtools depth $bam > ${bam.baseName}_depth.txt
-    re_map=\$(awk '{if(NR==1) print \$3}' ${bam.baseName}_idxstats.txt)
+    re_map=\$(awk '{sum+=\$3}END{print sum}' ${bam.baseName}_idxstats.txt)
     tot_bp=\$(awk '{sum+=\$3}END{print sum}' ${bam.baseName}_depth.txt)
     depth=\$(awk '{sum+=\$3;cnt++}END{print sum/cnt}' ${bam.baseName}_depth.txt| sed 's/,/./')
-    ref_len=\$(awk '{if(NR==1) print \$2}' ${bam.baseName}_idxstats.txt)
+    ref_len=\$(awk '{sum+=\$2}END{print sum}' ${bam.baseName}_idxstats.txt)
     cov=\$(echo "scale=2 ; \$tot_bp / \$ref_len" | bc)
     echo -e "${bam.baseName}\t\$re_map\t\$tot_bp\t\$depth\t\$cov" >> $stats_file
   """
