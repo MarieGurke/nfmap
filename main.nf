@@ -41,7 +41,6 @@ process index_ref {
   script:
   """
     bwa-mem2 index $ref
-    samtools faidx $ref
   """
 }
 
