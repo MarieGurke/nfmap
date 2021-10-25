@@ -40,7 +40,7 @@ process index_ref {
 
   script:
   """
-    bwa-mem2 index $ref
+    bwa index $ref
   """
 }
 
@@ -61,8 +61,8 @@ process mapping {
 
   script:
   """
-    bwa-mem2 mem -t ${task.cpus} $ref $reads_PE > ${sample_id}_PE.sam
-    bwa-mem2 mem -t ${task.cpus} $ref $reads_SE > ${reads_SE}_SE.sam
+    bwa mem -t ${task.cpus} $ref $reads_PE > ${sample_id}_PE.sam
+    bwa mem -t ${task.cpus} $ref $reads_SE > ${reads_SE}_SE.sam
   """
 
 }

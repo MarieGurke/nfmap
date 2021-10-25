@@ -2,10 +2,10 @@
 
 This nextflow pipeline maps paired and merged reads from several samples to a reference genome. Currently adapted to work with the output of this [nf-polish](https://github.com/MozesBlom/nf-polish) pipeline on the MfN cluster.
 
-Dependencies are samtools and bwa-mem2. The steps included in this pipeline are:
+Dependencies are samtools and bwa mem. The steps included in this pipeline are:
 
-1. Indexing the reference genome using bwa-mem2 index
-2. Mapping two paired end and one single end file with merged reads to the reference genome using bwa-mem2
+1. Indexing the reference genome using bwa index
+2. Mapping two paired end and one single end file with merged reads to the reference genome using bwa mem
 3. Quality filtering at a mapping quality score of 30 (default) and sorting of the reads using samtools view and sort
 4. Merging the two filtered and sorted .bam files into only one file per sample using samtools merge
 5. Collecting stats about the mapped reads (samtools idxstats and depth) and creating an overview sheet containing information about all samples
