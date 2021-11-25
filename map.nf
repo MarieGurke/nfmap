@@ -3,7 +3,7 @@ log.info """\
          Fancy nextflow mapping script
          ===================================
          Read directory          : ${params.read_dir}
-         Reference directory     : ${params.ref_dir}
+         Reference directory     : ${params.ref}
          Output directory        : ${params.out_dir}
          Mapping quality cutoff  : ${params.qual_fil}
          """
@@ -11,7 +11,7 @@ log.info """\
 
 // holds the reference file, goes into index_ref
 Channel
-  .fromPath("${params.ref_dir}*.fasta*")
+  .fromPath("${params.ref}")
   .into{ref_index_ch;ref_len_ch}
 
 // holds the forward and reverse reads + the sample id, goes into map_PE
@@ -136,7 +136,7 @@ process stats {
     samtools index -@ ${task.cpus} $bam
     samtools idxstats $bam > ${bam.baseName}_idxstats.txt
     samtools depth $bam > ${bam.baseName}_depth.txt
-    re_map=\$(awk '{sum+=\$3}END{print sum}' ${bam.baseName}_idxstats.txt)
+    re_map=\$(samtools view -c -F 260 $bam)
     tot_bp=\$(awk '{sum+=\$3}END{print sum}' ${bam.baseName}_depth.txt)
     depth=\$(awk '{sum+=\$3;cnt++}END{print sum/cnt}' ${bam.baseName}_depth.txt| sed 's/,/./')
     ref_len=\$(awk '{sum+=\$2}END{print sum}' ${bam.baseName}_idxstats.txt)
