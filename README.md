@@ -17,13 +17,13 @@ Dependencies are samtools and bwa mem. The steps included in this pipeline are:
 
 
 ```bash
-nextflow run main.nf --read_dir ../data/reads/ --ref_dir /data/reference/ --out_dir /data/output/ -profile mfn
+nextflow run main.nf --read_dir ../data/reads/ --ref /data/reference/ref_file.fa --out_dir /data/output/ -profile mfn
 ```
 
 **Parameters:**
 
 * --read_dir 	    :		Directory containing sub folders for each samples. In those sub folders must be three \*.fastq.gz files. Two containing paired end reads (\*R{1,2}.fastq.gz) and one containing merged reads (*U.fastq.gz).
-* --ref_dir 	        :	    Directory containing the reference genome in *.fasta format.
+* --ref 	        :	    Path to reference file in .fasta format. 
 * --out_dir            :        Directory where the pipeline output should be written into.
 * --qual_fil            :        (INT) mapping quality score cut of for the quality filter steps (Default: 30)
 * -profile              :        Can be either local (for running it on a local computer) or mfn for running it on the museums cluster.
