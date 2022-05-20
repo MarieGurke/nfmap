@@ -6,4 +6,4 @@ channels:
 dependencies:
  - bwa
  - samtools=1.13
- - nextflow 
+ - nextflow=21.04.0  
